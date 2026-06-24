@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: mart_github_summary
+    description: "Daily aggregated GitHub event counts by type"
+    columns:
+      - name: event_date
+        tests: [not_null]
+      - name: event_type
+        tests: [not_null]
+      - name: total_events
+        tests: [not_null]
+
+  - name: mart_hn_top_stories
+    description: "Top Hacker News stories with domain enrichment"
+    columns:
+      - name: hn_id
+        tests: [not_null, unique]
+      - name: title
+        tests: [not_null]
+
+  - name: mart_combined_activity
+    description: "Cross-source daily activity combining GitHub and HN"
+    columns:
+      - name: activity_date
+        tests: [not_null]

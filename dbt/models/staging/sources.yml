@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: public
+    tables:
+      - name: github_events_raw
+        description: "Raw GitHub public events"
+        columns:
+          - name: event_id
+            tests: [not_null, unique]
+          - name: event_type
+            tests: [not_null]
+      - name: hn_stories_raw
+        description: "Raw Hacker News top stories"
+        columns:
+          - name: hn_id
+            tests: [not_null, unique]
+          - name: title
+            tests: [not_null]

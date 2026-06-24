@@ -1,0 +1,16 @@
+requests==2.31.0
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+pandas==2.1.4
+python-dotenv==1.0.0
+dbt-postgres==1.7.4
+streamlit==1.29.0
+plotly==5.18.0
+pytest==7.4.3
+pytest-cov==4.1.0
+responses==0.24.1
+alembic==1.13.0
+pydantic==2.5.2
+loguru==0.7.2
+tenacity==8.2.3
+altair==5.2.0

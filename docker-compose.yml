@@ -1,0 +1,59 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: pipeone_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pipeone}
+      POSTGRES_USER: ${POSTGRES_USER:-pipeone_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pipeone_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pipeone_user} -d ${POSTGRES_DB:-pipeone}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pipeline:
+    build: .
+    container_name: pipeone_pipeline
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-pipeone}
+      POSTGRES_USER: ${POSTGRES_USER:-pipeone_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pipeone_pass}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      PYTHONPATH: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: python ingestion/pipeline.py
+    volumes:
+      - ./logs:/app/logs
+
+  dashboard:
+    build: .
+    container_name: pipeone_dashboard
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-pipeone}
+      POSTGRES_USER: ${POSTGRES_USER:-pipeone_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pipeone_pass}
+      PYTHONPATH: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
