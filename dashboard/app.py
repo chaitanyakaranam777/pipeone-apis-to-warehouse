@@ -1,7 +1,19 @@
 """
-PipeOne Streamlit Dashboard — multi-page analytics app.
+PipeOne Streamlit Dashboard — entry point.
+
+Run:
+    streamlit run dashboard/app.py
+
+Pages:
+    Home            — KPIs, pipeline health, architecture
+    GitHub          — event analytics with Plotly charts
+    Hacker News     — story analytics with Plotly charts
+    Combined        — cross-source insights and trending data
 """
-import os, sys
+import os
+import sys
+
+# Ensure the project root is on sys.path when launched from any directory
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import streamlit as st
@@ -13,38 +25,58 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Sidebar nav ──────────────────────────────────────────────────────────────
-PAGES = {
-    "🏠 Home": "home",
-    "🐙 GitHub Analytics": "github",
-    "📰 Hacker News Analytics": "hackernews",
-    "🔗 Combined Dashboard": "combined",
-}
-
-st.sidebar.title("PipeOne")
-st.sidebar.caption("APIs → Warehouse · Data Pipeline")
-page = st.sidebar.radio("Navigate", list(PAGES.keys()))
-
-# Dark-mode toggle
-dark = st.sidebar.checkbox("Dark Mode", value=True)
+# ── Dark mode toggle (applied before any content renders) ─────────────────────
+dark = st.sidebar.checkbox("🌙 Dark Mode", value=True)
 if dark:
     st.markdown(
-        "<style>body, .stApp { background-color: #0e1117; color: #fafafa; }</style>",
+        """
+        <style>
+        body, .stApp, [data-testid="stAppViewContainer"] {
+            background-color: #0e1117;
+            color: #fafafa;
+        }
+        [data-testid="stSidebar"] {
+            background-color: #161b22;
+        }
+        </style>
+        """,
         unsafe_allow_html=True,
     )
 
+# ── Sidebar navigation ─────────────────────────────────────────────────────────
+st.sidebar.title("🚀 PipeOne")
+st.sidebar.caption("APIs → PostgreSQL → dbt → Dashboard")
+
+page = st.sidebar.radio(
+    "Navigate",
+    ["🏠 Home", "🐙 GitHub Analytics", "📰 Hacker News", "🔗 Combined Dashboard"],
+    label_visibility="collapsed",
+)
+
 st.sidebar.markdown("---")
-st.sidebar.info("H1 — PipeOne Internship Project\nFoundations of Data Engineering")
 
-# ── Page router ──────────────────────────────────────────────────────────────
-key = PAGES[page]
-if key == "home":
-    from dashboard.pages import home as p
-elif key == "github":
-    from dashboard.pages import github as p
-elif key == "hackernews":
-    from dashboard.pages import hackernews as p
+# Show connection status in sidebar
+from dashboard.db_queries import db_connected
+if db_connected():
+    st.sidebar.success("🟢 Database connected")
 else:
-    from dashboard.pages import combined as p
+    st.sidebar.warning("🟡 Demo mode (no DB)")
 
-p.render()
+st.sidebar.markdown("---")
+st.sidebar.caption(
+    "**H1 — PipeOne**\n\n"
+    "Foundations of Data Engineering\n\n"
+    "GitHub + HN → PostgreSQL → dbt → Streamlit"
+)
+
+# ── Page routing ───────────────────────────────────────────────────────────────
+if page == "🏠 Home":
+    from dashboard.pages.home import render
+elif page == "🐙 GitHub Analytics":
+    from dashboard.pages.github import render
+elif page == "📰 Hacker News":
+    from dashboard.pages.hackernews import render
+else:
+    from dashboard.pages.combined import render
+
+render()

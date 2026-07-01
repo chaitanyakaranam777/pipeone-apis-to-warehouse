@@ -1,33 +1,5 @@
 version: 2
 
-models:
-  - name: stg_github_events
-    description: "Cleaned and renamed GitHub public events"
-    columns:
-      - name: event_id
-        tests: [unique, not_null]
-      - name: event_type
-        tests: [not_null]
-
-  - name: stg_hn_stories
-    description: "Cleaned Hacker News top stories with score tier"
-    columns:
-      - name: hn_id
-        tests: [unique, not_null]
-      - name: title
-        tests: [not_null]
-
-  - name: int_actor_activity
-    description: "Per-actor aggregated activity stats"
-
-  - name: int_repo_activity
-    description: "Per-repo aggregated activity stats"
-
-  - name: mart_github_summary
-    description: "Final GitHub repo activity mart, ranked"
-
-  - name: mart_hn_summary
-    description: "Final HN stories mart with rankings"
-
-  - name: mart_combined_trending
-    description: "Unified trending view across GitHub and HN"
+# This file documents models that span multiple layers.
+# Layer-specific documentation is in each layer's schema.yml.
+# See: staging/sources.yml and marts/schema.yml

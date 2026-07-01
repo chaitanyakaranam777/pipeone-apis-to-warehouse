@@ -1,16 +1,24 @@
-"""Pytest configuration and shared fixtures."""
+"""
+Shared pytest configuration and fixtures for the PipeOne test suite.
+
+All tests run without a live PostgreSQL — the loader and DB tests use
+an in-memory SQLite database via monkeypatching or scoped fixtures.
+"""
 import sys
 import os
 import pytest
 
-# Ensure the project root is on sys.path for all tests
+# Project root on sys.path for all test modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Set test environment variables
-os.environ.setdefault("POSTGRES_HOST", "localhost")
-os.environ.setdefault("POSTGRES_PORT", "5432")
-os.environ.setdefault("POSTGRES_DB", "pipeone_test")
-os.environ.setdefault("POSTGRES_USER", "pipeone_user")
-os.environ.setdefault("POSTGRES_PASSWORD", "pipeone_pass")
-os.environ.setdefault("GITHUB_TOKEN", "test_token")
-os.environ.setdefault("LOG_LEVEL", "WARNING")
+# Test environment variables — override any .env settings
+os.environ.update({
+    "POSTGRES_HOST": "localhost",
+    "POSTGRES_PORT": "5432",
+    "POSTGRES_DB": "pipeone_test",
+    "POSTGRES_USER": "pipeone_user",
+    "POSTGRES_PASSWORD": "pipeone_pass",
+    "GITHUB_TOKEN": "test_token_ci",
+    "LOG_LEVEL": "WARNING",       # Suppress info logs during tests
+    "ENVIRONMENT": "test",
+})

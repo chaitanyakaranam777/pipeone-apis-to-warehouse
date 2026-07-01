@@ -1,13 +1,13 @@
--- Intermediate: aggregate HN stories by domain
+-- Intermediate: aggregate story stats by domain.
+-- Used by mart_hn_top_stories for domain enrichment.
 {{ config(materialized='view') }}
 
 SELECT
     domain,
-    COUNT(*)            AS story_count,
-    AVG(score)::INT     AS avg_score,
-    SUM(comment_count)  AS total_comments,
-    MAX(score)          AS max_score
+    COUNT(*)                AS story_count,
+    ROUND(AVG(score))       AS avg_score,
+    SUM(comment_count)      AS total_comments,
+    MAX(score)              AS max_score,
+    MIN(score)              AS min_score
 FROM {{ ref('stg_hn_stories') }}
 GROUP BY 1
-HAVING COUNT(*) >= 1
-ORDER BY story_count DESC

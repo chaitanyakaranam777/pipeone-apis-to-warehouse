@@ -1,4 +1,5 @@
--- Mart: top HN stories enriched with domain stats
+-- Mart: top Hacker News stories enriched with domain statistics.
+-- Primary table for the HN Analytics dashboard page.
 {{ config(materialized='table') }}
 
 WITH stories AS (
@@ -18,9 +19,10 @@ SELECT
     s.comment_count,
     s.story_type,
     s.time_posted,
+    s.ingested_at,
     d.story_count        AS domain_story_count,
-    d.avg_score          AS domain_avg_score
+    d.avg_score          AS domain_avg_score,
+    d.max_score          AS domain_max_score
 FROM stories s
 LEFT JOIN domain_stats d ON s.domain = d.domain
 ORDER BY s.score DESC
-LIMIT 200
