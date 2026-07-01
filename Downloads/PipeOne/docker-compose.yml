@@ -1,0 +1,91 @@
+version: "3.9"
+
+# PipeOne — full stack in one command: docker compose up
+#
+# Services:
+#   postgres   — PostgreSQL 15 database
+#   pipeline   — one-shot ingestion (runs once, exits)
+#   dashboard  — Streamlit app (always running on :8501)
+#
+# Startup order:
+#   postgres (healthy) → pipeline (runs + exits) → dashboard (starts, runs forever)
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: pipeone_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pipeone}
+      POSTGRES_USER: ${POSTGRES_USER:-pipeone_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pipeone_pass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pipeone_user} -d ${POSTGRES_DB:-pipeone}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  # ── One-shot ingestion pipeline ─────────────────────────────────────────────
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pipeone_pipeline
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-pipeone}
+      POSTGRES_USER: ${POSTGRES_USER:-pipeone_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pipeone_pass}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      PYTHONPATH: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: python /app/ingestion/pipeline.py
+    volumes:
+      - ./logs:/app/logs
+    restart: "no"
+
+  # ── Streamlit dashboard ─────────────────────────────────────────────────────
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pipeone_dashboard
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-pipeone}
+      POSTGRES_USER: ${POSTGRES_USER:-pipeone_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pipeone_pass}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      PYTHONPATH: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./logs:/app/logs
+    # Use the entrypoint that runs pipeline + optional dbt before serving
+    command: bash /app/scripts/entrypoint.sh
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  postgres_data:
+    name: pipeone_postgres_data

@@ -1,0 +1,61 @@
+version: 2
+
+models:
+  - name: mart_github_summary
+    description: "Daily GitHub event counts by type — drives GitHub Analytics page"
+    columns:
+      - name: event_date
+        description: "Truncated to day"
+        tests: [not_null]
+      - name: event_type
+        description: "GitHub event type"
+        tests: [not_null]
+      - name: total_events
+        description: "Sum of events for this date/type combination"
+        tests: [not_null]
+      - name: unique_actors
+        description: "Distinct actors on this date/type"
+
+  - name: mart_hn_top_stories
+    description: "Top HN stories enriched with domain stats — drives HN Analytics page"
+    columns:
+      - name: hn_id
+        description: "Hacker News item ID"
+        tests: [not_null, unique]
+      - name: title
+        description: "Story title"
+        tests: [not_null]
+      - name: score
+        description: "Current vote score"
+      - name: domain
+        description: "Extracted domain from URL, or 'self' for text posts"
+
+  - name: mart_combined_activity
+    description: "Cross-source daily activity for the Combined Dashboard"
+    columns:
+      - name: activity_date
+        description: "Date of activity"
+        tests: [not_null]
+      - name: github_events
+        description: "Total GitHub events on this date"
+      - name: hn_stories
+        description: "Total HN stories posted on this date"
+
+  - name: mart_repo_leaderboard
+    description: "Top 50 repos by total event volume"
+    columns:
+      - name: repo_name
+        description: "Full owner/repo name"
+        tests: [not_null, unique]
+      - name: total_events
+        tests: [not_null]
+
+  - name: mart_pipeline_health
+    description: "Recent pipeline run history with success rates"
+    columns:
+      - name: id
+        tests: [not_null, unique]
+      - name: pipeline
+        tests: [not_null]
+      - name: status
+        tests: [not_null]

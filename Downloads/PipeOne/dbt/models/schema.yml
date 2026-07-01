@@ -1,0 +1,5 @@
+version: 2
+
+# This file documents models that span multiple layers.
+# Layer-specific documentation is in each layer's schema.yml.
+# See: staging/sources.yml and marts/schema.yml
