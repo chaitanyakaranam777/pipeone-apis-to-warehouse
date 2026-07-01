@@ -9,10 +9,10 @@ with github as (
         repo_name       as name,
         null            as url,
         total_events    as score_or_activity,
-        unique_actors   as engagement,
-        first_event     as published_at
-    from {{ ref('mart_github_summary') }}
-    where activity_rank <= 20
+        unique_contributors as engagement,
+        last_event_at       as published_at
+    from {{ ref('mart_repo_leaderboard') }}
+    limit 20
 ),
 
 hn as (

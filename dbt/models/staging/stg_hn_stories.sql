@@ -16,6 +16,7 @@ SELECT
     comment_count,
     story_type,
     time_posted,
+    DATE(time_posted) AS posted_day,
     ingested_at
 FROM {{ source('raw', 'hn_stories_raw') }}
 WHERE hn_id IS NOT NULL
